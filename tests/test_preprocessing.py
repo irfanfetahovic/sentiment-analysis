@@ -196,21 +196,23 @@ class TestLoadAndPrepareData:
     @pytest.fixture
     def sample_csv(self, tmp_path):
         """Create a sample CSV file for testing."""
-        df = pd.DataFrame(
-            {
-                "Score": [1, 2, 3, 4, 5, 1, 5],
-                "Text": [
-                    "Bad product",
-                    "Not good",
-                    "Okay",
-                    "Good product",
-                    "Excellent!",
-                    "Terrible",
-                    "Amazing!",
-                ],
-            }
-        )
-
+        # Ensure at least 10 non-neutral rows for binary and 3-class tests
+        scores = [1, 2, 3, 4, 5, 1, 5, 1, 5, 2, 4, 5]
+        texts = [
+            "Bad product",
+            "Not good",
+            "Okay",
+            "Good product",
+            "Excellent!",
+            "Terrible",
+            "Amazing!",
+            "Superb!",
+            "Awful!",
+            "Fine",
+            "Great",
+            "Poor",
+        ]
+        df = pd.DataFrame({"Score": scores, "Text": texts})
         csv_path = tmp_path / "test_reviews.csv"
         df.to_csv(csv_path, index=False)
         return str(csv_path)

@@ -67,6 +67,13 @@ class TransformerSentimentTrainer:
     Trainer class for transformer-based sentiment analysis.
     """
 
+    def build_model(self):
+        """Build and load the transformer model."""
+        self.model = DistilBertForSequenceClassification.from_pretrained(
+            self.model_name, num_labels=self.num_labels
+        )
+        return self.model
+
     def __init__(
         self,
         model_name: str = DEFAULT_MODEL_NAME,
