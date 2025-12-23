@@ -11,9 +11,9 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def mock_predictor():
     """Mock sentiment predictor."""
-    # Create fake (mock) predictor instance with controlled behavior
     predictor = Mock()
-    predictor.predict.side_effect = lambda x: (
+    # Mock predict_with_labels to match API usage
+    predictor.predict_with_labels.side_effect = lambda x: (
         [
             {"text": "Great product!", "label": "POSITIVE", "score": 0.95},
             {"text": "Terrible quality", "label": "NEGATIVE", "score": 0.88},
@@ -78,7 +78,7 @@ class TestFastAPIEndpoints:
         assert "processing_time" in data
 
         # Verify predictor was called
-        mock_predictor.predict.assert_called_once_with("Great product!")
+        mock_predictor.predict_with_labels.assert_called_once_with("Great product!")
 
     def test_predict_endpoint_empty_text(self, client):
         """Test prediction with empty text."""
@@ -118,7 +118,7 @@ class TestFastAPIEndpoints:
         assert "total_time" in data
 
         # Verify batch predictor was called
-        mock_predictor.predict_batch.assert_called_once()
+        mock_predictor.predict_with_labels.assert_called_once_with(["Great product!", "Terrible quality"])
 
     def test_predict_batch_endpoint_empty_list(self, client):
         """Test batch prediction with empty list."""

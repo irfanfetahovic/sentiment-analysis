@@ -103,7 +103,7 @@ class TestRegisterTrainedModel:
                 model_name="Model 2",
                 model_path="/path/to/model2",
                 model_type="transformer",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Check both models are registered
@@ -124,7 +124,7 @@ class TestRegisterTrainedModel:
                 model_name="Test Model",
                 model_path="/path/to/model_v1",
                 model_type="classical",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Register again with same name
@@ -132,7 +132,7 @@ class TestRegisterTrainedModel:
                 model_name="Test Model",
                 model_path="/path/to/model_v2",
                 model_type="transformer",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Check only one entry exists with updated info
@@ -166,7 +166,7 @@ class TestRegisterTrainedModel:
                 model_name="New Model",
                 model_path="/path/to/new",
                 model_type="transformer",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Check both models exist
@@ -186,7 +186,7 @@ class TestRegisterTrainedModel:
                 model_name="Test Model",
                 model_path="/path/to/model",
                 model_type="classical",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Check file and directories were created
@@ -235,7 +235,7 @@ class TestRegisterTrainedModel:
                 model_name="Test Model",
                 model_path="/path/to/model",
                 model_type="classical",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Check valid JSON was written
@@ -259,7 +259,7 @@ class TestUtilsIntegration:
                 model_name="Binary Model",
                 model_path="/path/to/binary",
                 model_type="classical",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Register 3-class model
@@ -267,7 +267,7 @@ class TestUtilsIntegration:
                 model_name="3-Class Model",
                 model_path="/path/to/3class",
                 model_type="transformer",
-                registry_path=str(registry_path),
+                registry_file=str(registry_path),
             )
 
             # Get label names for both

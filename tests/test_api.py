@@ -12,8 +12,8 @@ def mock_predictor():
     """Mock sentiment predictor."""
     with patch("app.app.SentimentPredictor") as mock:
         instance = Mock()
-        # Single prediction returns a dict
-        instance.predict.side_effect = lambda x: (
+        # Mock predict_with_labels to match API usage
+        instance.predict_with_labels.side_effect = lambda x: (
             [
                 {"text": "Great!", "label": "POSITIVE", "score": 0.95},
                 {"text": "Terrible!", "label": "NEGATIVE", "score": 0.92},
@@ -91,7 +91,7 @@ class TestAPI:
 
     def test_predict_batch_endpoint(self, client, mock_predictor):
         """Test batch prediction."""
-        mock_predictor.predict.return_value = [
+        mock_predictor.predict_with_labels.return_value = [
             {"text": "Great!", "label": "POSITIVE", "score": 0.95},
             {"text": "Terrible!", "label": "NEGATIVE", "score": 0.92},
         ]
