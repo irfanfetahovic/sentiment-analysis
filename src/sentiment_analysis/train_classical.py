@@ -112,23 +112,18 @@ class ClassicalSentimentModel:
             and isinstance(X, (list, pd.Series))
             and isinstance(X.iloc[0] if isinstance(X, pd.Series) else X[0], str)
         ):
+            # If using feature extractor, always pass as list of strings
             X_features = self.feature_extractor.transform(X)
         else:
+            # If not using feature extractor, only reshape if input is numeric or already vectorized
             X_features = X
-            # If X_features is a 1D array of strings, reshape to (-1, 1) for sklearn
+            # Only reshape if X_features is a 1D numeric array
             if (
                 isinstance(X_features, np.ndarray)
-                and X_features.dtype.kind in {"U", "S", "O"}
                 and X_features.ndim == 1
+                and np.issubdtype(X_features.dtype, np.number)
             ):
                 X_features = X_features.reshape(-1, 1)
-            elif (
-                isinstance(X_features, list)
-                and len(X_features) > 0
-                and isinstance(X_features[0], str)
-            ):
-                X_features = np.array(X_features).reshape(-1, 1)
-
         return self.model.predict(X_features)
 
     def predict_proba(self, X):
