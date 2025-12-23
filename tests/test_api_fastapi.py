@@ -118,7 +118,9 @@ class TestFastAPIEndpoints:
         assert "total_time" in data
 
         # Verify batch predictor was called
-        mock_predictor.predict_with_labels.assert_called_once_with(["Great product!", "Terrible quality"])
+        mock_predictor.predict_with_labels.assert_called_once_with(
+            ["Great product!", "Terrible quality"]
+        )
 
     def test_predict_batch_endpoint_empty_list(self, client):
         """Test batch prediction with empty list."""
