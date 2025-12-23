@@ -1,0 +1,14 @@
+{
+  "start_time": "2025-12-19T11:01:28.195265",
+  "config": {},
+  "training": {},
+  "evaluation": {
+    "comparison": {
+      "success": true,
+      "duration": 539.6310198307037,
+      "results_file": "D:\\Kursevi\\machine learning\\Projects\\NLP\\sentiment-analysis\\results\\models_comparison.json"
+    }
+  },
+  "artifacts": {},
+  "end_time": "2025-12-19T11:10:27.826285"
+}

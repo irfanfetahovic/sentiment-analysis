@@ -1,0 +1,147 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Data files
+*.csv
+!data/.gitkeep
+data/Reviews.csv
+data/glove/*.txt
+data/processed/
+
+# Models (too large for git)
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.bin
+models/*.safetensors
+models/distilbert_sentiment/
+models/distilbert_sentiment_quantized/
+models/distilbert_amazon_sentiment/
+models/distilbert_amazon_sentiment_quantized/
+models/classical_models/
+!models/.gitkeep
+
+# Checkpoints
+notebooks/distilbert_sentiment/
+notebooks/distilbert_amazon_sentiment/
+notebooks/checkpoint-*/
+notebooks/runs/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.out
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Type checking
+.pytype/
+
+# Profiling
+*.prof
+
+# Documentation
+docs/_build/
+docs/GITHUB_SETUP.md
+site/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# MLflow
+mlruns/
+
+# Tensorboard
+runs/
+events.out.tfevents.*
+
+# Weights & Biases
+wandb/
+
+# DVC
+.dvc/
+
+# Large embedding files
+*.bin
+*.vec
+glove*.txt
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Generated comparison reports
+models_config.json
+
+# Pre-commit
+.pre-commit-config.yaml.bak
+
+# Secrets
+IAM user aws-cli-user access keys.txt

@@ -1,0 +1,90 @@
+{
+  "Logistic Regression + TF-IDF": {
+    "accuracy": 0.9020540129326741,
+    "f1_macro": 0.8403397648011642,
+    "f1_weighted": 0.9090957426827666,
+    "precision_macro": 0.8033163258418543,
+    "recall_macro": 0.9061767159862053,
+    "classification_report": {
+      "NEGATIVE": {
+        "precision": 0.6240474174428451,
+        "recall": 0.9121287128712872,
+        "f1-score": 0.7410759175465058,
+        "support": 808.0
+      },
+      "POSITIVE": {
+        "precision": 0.9825852342408634,
+        "recall": 0.9002247191011236,
+        "f1-score": 0.9396036120558227,
+        "support": 4450.0
+      },
+      "accuracy": 0.9020540129326741,
+      "macro avg": {
+        "precision": 0.8033163258418543,
+        "recall": 0.9061767159862053,
+        "f1-score": 0.8403397648011642,
+        "support": 5258.0
+      },
+      "weighted avg": {
+        "precision": 0.9274885138200192,
+        "recall": 0.9020540129326741,
+        "f1-score": 0.9090957426827666,
+        "support": 5258.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        737,
+        71
+      ],
+      [
+        444,
+        4006
+      ]
+    ]
+  },
+  "DistilBERT Fine-tuned": {
+    "accuracy": 0.9604412324077596,
+    "f1_macro": 0.9241883512541325,
+    "f1_weighted": 0.9605010556439867,
+    "precision_macro": 0.922911547911548,
+    "recall_macro": 0.9254775280898877,
+    "classification_report": {
+      "NEGATIVE": {
+        "precision": 0.8685503685503686,
+        "recall": 0.875,
+        "f1-score": 0.8717632552404438,
+        "support": 808.0
+      },
+      "POSITIVE": {
+        "precision": 0.9772727272727273,
+        "recall": 0.9759550561797753,
+        "f1-score": 0.976613447267821,
+        "support": 4450.0
+      },
+      "accuracy": 0.9604412324077596,
+      "macro avg": {
+        "precision": 0.922911547911548,
+        "recall": 0.9254775280898877,
+        "f1-score": 0.9241883512541325,
+        "support": 5258.0
+      },
+      "weighted avg": {
+        "precision": 0.9605652974804743,
+        "recall": 0.9604412324077596,
+        "f1-score": 0.9605010556439867,
+        "support": 5258.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        707,
+        101
+      ],
+      [
+        107,
+        4343
+      ]
+    ]
+  }
+}

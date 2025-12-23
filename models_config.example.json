@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Logistic Regression + TF-IDF",
+    "path": "models/classical_models/logistic_tfidf_model.pkl",
+    "type": "classical"
+  },
+  {
+    "name": "DistilBERT Fine-tuned",
+    "path": "models/distilbert_sentiment",
+    "type": "transformer"
+  }
+]

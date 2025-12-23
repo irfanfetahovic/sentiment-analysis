@@ -1,0 +1,84 @@
+# Project Configuration
+
+# Data Settings
+data:
+  path: "data/Reviews.csv"
+  glove_path: "data/glove/glove.2024.wikigiga.100d.txt"  # Not used, kept for reference
+  sample_frac: 0.1  # Use 10% of data for quick experiments
+  problem_type: "binary"  # Binary classification only
+  remove_neutral: true  # Remove neutral reviews (score == 3)
+
+# Preprocessing Settings
+preprocessing:
+  # Classical mode: Extensive preprocessing for TF-IDF, Word2Vec, SVM
+  classical:
+    mode: "classical"
+    use_negation: true
+    remove_stopwords: true
+  
+  # Transformer mode: Minimal preprocessing for DistilBERT, BERT
+  transformer:
+    mode: "transformer"
+    # No additional parameters needed - minimal preprocessing
+
+# Model Settings
+model:
+  # Transformer settings (DistilBERT)
+  transformer:
+    model_name: "distilbert-base-uncased"
+    num_labels: 2
+    max_length: 128
+    dropout: 0.3
+  
+  # Classical ML settings (Logistic Regression + TF-IDF)
+  classical:
+    model_type: "logistic"  # Fixed: Logistic Regression only (matching notebook)
+    feature_type: "tfidf"  # Fixed: TF-IDF only (matching notebook)
+    max_features: 5000  # Match notebook (5000 for efficiency)
+    ngram_range: [1, 1]  # Unigrams only (match notebook)
+
+# Training Settings
+training:
+  # Common settings
+  random_state: 42
+  test_size: 0.1
+  val_size: 0.1
+  
+  # Transformer training
+  transformer:
+    learning_rate: 2.0e-5
+    batch_size: 16
+    num_epochs: 3
+    weight_decay: 0.01
+    early_stopping_patience: 2
+    save_total_limit: 2
+    fp16: true  # Use mixed precision if GPU available
+  
+  # Classical ML training
+  classical:
+    cv_folds: 5
+
+# Inference Settings
+inference:
+  model_type: "transformer"  # Options: "transformer" or "classical"
+  batch_size: 32
+  device: "cuda"  # Options: "cuda" or "cpu"
+
+# Logging Settings
+logging:
+  level: "INFO"  # Options: "DEBUG", "INFO", "WARNING", "ERROR"
+  log_file: "logs/app.log"
+
+# API Settings
+api:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+  max_text_length: 5000
+
+# Paths (relative to project root)
+paths:
+  models_dir: "models"
+  data_dir: "data"
+  logs_dir: "logs"
+  output_dir: "output"

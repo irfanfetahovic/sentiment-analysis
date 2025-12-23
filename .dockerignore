@@ -1,0 +1,71 @@
+# Controls files and directories to be sent to Docker build context
+# Docker build context is the set of files accessible to the Docker engine during the build process.
+# Docker engine uses this context to copy files into the Docker image as specified in the Dockerfile.
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Data (large files - exclude entire directories)
+data/
+models/
+
+# Results and logs
+results/
+logs/
+*.log
+
+# Documentation
+docs/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Misc
+*.md
+!README.md
+LICENSE
+Makefile
+setup.cfg
+requirements-dev.txt
+tests/
+.mypy_cache/
+.ruff_cache/

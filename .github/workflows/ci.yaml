@@ -1,0 +1,140 @@
+name: CI/CD Pipeline for Sentiment Analysis Project
+
+# Event triggers for the workflow
+# Trigger the workflow on push or pull request to main or develop branches
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+# Define the jobs to run in the workflow (actions for testing and Docker image building)
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Define a matrix of Python versions to test against
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    # Cache pip packages that contain dependencies to speed up installs
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Download NLTK data
+      run: |
+        python -c "import nltk; nltk.download('stopwords'); nltk.download('wordnet'); nltk.download('omw-1.4'); nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('averaged_perceptron_tagger_eng')"
+    
+    - name: Lint with flake8
+      run: |
+        flake8 src/ tests/ scripts/ app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ scripts/ app/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+    
+    - name: Format check with black
+      run: |
+        black --check src/ tests/ scripts/ app/
+    
+    - name: Type check with mypy
+      run: |
+        mypy src/ tests/ scripts/ app/ --ignore-missing-imports
+      continue-on-error: true
+    
+    - name: Run tests with pytest
+      run: |
+        pytest tests/ --cov=. --cov-report=xml --cov-report=html
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  # Build and push Docker image (Dockerfile is needed)
+  # NOTE: This builds a Docker image WITHOUT model files (models stored separately in S3)
+  # The image includes an entrypoint script that downloads models from S3/URL on container startup
+  # Set MODEL_S3_URI or MODEL_URL environment variable when running the container
+  # See docs/deployment.md for complete setup instructions
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    # Only build and push Docker image on pushes to main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    # Docker Hub publishing (commented out; using GHCR instead)
+    # - name: Login to Docker Hub
+    #   uses: docker/login-action@v2
+    #   with:
+    #     username: ${{ secrets.DOCKER_USERNAME }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    # - name: Build and push (Docker Hub)
+    #   uses: docker/build-push-action@v4
+    #   with:
+    #     context: .
+    #     push: true
+    #     tags: |
+    #       ${{ secrets.DOCKER_USERNAME }}/sentiment-analysis:latest
+    #       ${{ secrets.DOCKER_USERNAME }}/sentiment-analysis:${{ github.sha }}
+    #     cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/sentiment-analysis:latest
+    #     cache-to: type=inline
+ 
+    # Build Docker image (without pushing - image is ~3.5GB due to PyTorch/Transformers)
+    # For portfolio projects, demonstrating the build works is sufficient
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        tags: sentiment-analysis:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
+
+    # GHCR publishing (commented out - image is too large for practical registry hosting)
+    # Uncomment if you want to push to GitHub Container Registry
+    # - name: Login to GHCR
+    #   uses: docker/login-action@v2
+    #   with:
+    #     registry: ghcr.io
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #
+    # - name: Build and push (GHCR)
+    #   uses: docker/build-push-action@v4
+    #   with:
+    #     context: .
+    #     push: true
+    #     tags: |
+    #       ghcr.io/${{ github.repository_owner }}/sentiment-analysis:latest
+    #       ghcr.io/${{ github.repository_owner }}/sentiment-analysis:${{ github.sha }}
+    #     cache-from: |
+    #       type=registry,ref=ghcr.io/${{ github.repository_owner }}/sentiment-analysis:latest
+    #       type=gha
+    #     cache-to: type=gha,mode=max
+    #     platforms: linux/amd64
