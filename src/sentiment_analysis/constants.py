@@ -1,3 +1,5 @@
+# Validation set size default
+DEFAULT_VAL_SIZE = 0.1
 """
 Constants Module
 
