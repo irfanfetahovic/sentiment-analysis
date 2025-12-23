@@ -64,6 +64,10 @@ class TestEvaluateClassification:
 
     def test_verbose_output(self, caplog):
         """Test verbose output."""
+        import logging
+
+        logger = logging.getLogger("sentiment_analysis.evaluation")
+        caplog.set_level(logging.INFO, logger="sentiment_analysis.evaluation")
         y_true = np.array([0, 1, 0, 1])
         y_pred = np.array([0, 1, 0, 1])
 
@@ -126,6 +130,10 @@ class TestCompareModels:
 
     def test_compare_two_models(self, caplog):
         """Test comparing two models."""
+        import logging
+
+        logger = logging.getLogger("sentiment_analysis.evaluation")
+        caplog.set_level(logging.INFO, logger="sentiment_analysis.evaluation")
         y_true = np.array([0, 1, 0, 1, 0, 1, 0, 1])
 
         predictions = {

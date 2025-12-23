@@ -9,23 +9,30 @@ from unittest.mock import Mock, patch
 
 @pytest.fixture
 def mock_predictor():
-    """Mock sentiment predictor."""
-    with patch("app.app.SentimentPredictor") as mock:
+    """Mock sentiment predictor for Flask app."""
+    with patch("app.app.SentimentPredictor") as mock_class:
         instance = Mock()
-        # Mock predict_with_labels to match API usage
-        instance.predict_with_labels.side_effect = lambda x: (
-            [
-                {"text": "Great!", "label": "POSITIVE", "score": 0.95},
-                {"text": "Terrible!", "label": "NEGATIVE", "score": 0.92},
-            ]
-            if isinstance(x, list)
-            else {
-                "text": "Great product!",
-                "label": "POSITIVE",
-                "score": 0.95,
-            }
-        )
-        mock.return_value = instance
+
+        # Patch predict_with_labels for both single and batch
+        def predict_with_labels(x):
+            if isinstance(x, list):
+                return [
+                    {
+                        "text": t,
+                        "label": "POSITIVE" if "Great" in t else "NEGATIVE",
+                        "score": 0.95 if "Great" in t else 0.92,
+                    }
+                    for t in x
+                ]
+            else:
+                return {
+                    "text": x,
+                    "label": "POSITIVE",
+                    "score": 0.95,
+                }
+
+        instance.predict_with_labels.side_effect = predict_with_labels
+        mock_class.return_value = instance
         yield instance
 
 

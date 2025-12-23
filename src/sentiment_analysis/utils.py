@@ -177,10 +177,10 @@ def register_trained_model(
         "registered_at": datetime.now().isoformat(),
     }
 
-    # Check if model already exists (by path) and update, otherwise append
+    # Check if model already exists (by name) and update, otherwise append
     existing_index = None
     for i, model in enumerate(models):
-        if model.get("path") == str(model_path):
+        if model.get("name") == model_name:
             existing_index = i
             break
 
