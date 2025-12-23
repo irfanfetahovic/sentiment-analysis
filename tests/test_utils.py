@@ -70,8 +70,7 @@ class TestRegisterTrainedModel:
             register_trained_model(
                 model_name="Test Model",
                 model_path=str(model_path),
-                model_type="transformer",
-                registry_path=str(registry_path),
+                model_type="transformer"
             )
 
             # Check file was created
@@ -96,8 +95,7 @@ class TestRegisterTrainedModel:
             register_trained_model(
                 model_name="Model 1",
                 model_path="/path/to/model1",
-                model_type="classical",
-                registry_path=str(registry_path),
+                model_type="classical"
             )
 
             # Register second model

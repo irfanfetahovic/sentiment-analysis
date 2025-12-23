@@ -36,68 +36,55 @@ class TestSentimentPredictor:
 
     def test_init_transformer(self, mock_transformer_pipeline):
         """Test initialization of transformer predictor."""
-        predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
-
-        assert predictor.model_type == "transformer"
-        assert predictor.pipeline is not None
+        with patch("pathlib.Path.exists", return_value=True):
+            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            assert predictor.model_type == "transformer"
+            assert predictor.pipeline is not None
 
     def test_predict_single_text_transformer(self, mock_transformer_pipeline):
         """Test prediction on single text with transformer (returns numpy array)."""
-        # Mock 2-class model config
         mock_config = Mock()
         mock_config.num_labels = 2
         mock_transformer_pipeline.model.config = mock_config
-
-        # When called, the mock pipeline returns a list of dicts
         mock_transformer_pipeline.return_value = [
-            [{"label": "LABEL_1", "score": 0.95}]  # LABEL_1 = POSITIVE (index 1)
+            [{"label": "LABEL_1", "score": 0.95}]
         ]
-
-        predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
-
-        result = predictor.predict("Great product!")
-
-        assert isinstance(result, np.ndarray)
-        assert result.shape == (1,)
-        assert result[0] == 1  # POSITIVE
+        with patch("pathlib.Path.exists", return_value=True):
+            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            result = predictor.predict("Great product!")
+            assert isinstance(result, np.ndarray)
+            assert result.shape == (1,)
+            assert result[0] == 1
 
     def test_predict_batch_transformer(self, mock_transformer_pipeline):
         """Test prediction on batch of texts with transformer (returns numpy array)."""
-        # Mock 2-class model config
         mock_config = Mock()
         mock_config.num_labels = 2
         mock_transformer_pipeline.model.config = mock_config
-
         mock_transformer_pipeline.return_value = [
-            [{"label": "LABEL_1", "score": 0.95}],  # POSITIVE
-            [{"label": "LABEL_0", "score": 0.88}],  # NEGATIVE
+            [{"label": "LABEL_1", "score": 0.95}],
+            [{"label": "LABEL_0", "score": 0.88}],
         ]
-
-        predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
-
-        texts = ["Great product!", "Terrible quality"]
-        results = predictor.predict(texts)
-
-        assert isinstance(results, np.ndarray)
-        assert results.shape == (2,)
-        assert results[0] == 1  # POSITIVE
-        assert results[1] == 0  # NEGATIVE
+        with patch("pathlib.Path.exists", return_value=True):
+            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            texts = ["Great product!", "Terrible quality"]
+            results = predictor.predict(texts)
+            assert isinstance(results, np.ndarray)
+            assert results.shape == (2,)
+            assert results[0] == 1
+            assert results[1] == 0
 
     def test_predict_with_labels_single_text(self, mock_transformer_pipeline):
         """Test predict_with_labels on single text with formatted output."""
-        # Mock 2-class model config
         mock_config = Mock()
         mock_config.num_labels = 2
         mock_transformer_pipeline.model.config = mock_config
-
         mock_transformer_pipeline.return_value = [{"label": "LABEL_1", "score": 0.95}]
-
-        predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
-
-        result = predictor.predict_with_labels("Great product!")
-
-        assert "label" in result
-        assert "score" in result
+        with patch("pathlib.Path.exists", return_value=True):
+            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            result = predictor.predict_with_labels("Great product!")
+            assert "label" in result
+            assert "score" in result
         assert "text" in result
         assert result["label"] == "POSITIVE"
         assert result["score"] == 0.95

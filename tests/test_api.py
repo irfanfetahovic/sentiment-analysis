@@ -12,11 +12,17 @@ def mock_predictor():
     """Mock sentiment predictor."""
     with patch("app.app.SentimentPredictor") as mock:
         instance = Mock()
-        instance.predict.return_value = {
-            "text": "Great product!",
-            "label": "POSITIVE",
-            "score": 0.95,
-        }
+        # Single prediction returns a dict
+        instance.predict.side_effect = lambda x: (
+            [
+                {"text": "Great!", "label": "POSITIVE", "score": 0.95},
+                {"text": "Terrible!", "label": "NEGATIVE", "score": 0.92},
+            ] if isinstance(x, list) else {
+                "text": "Great product!",
+                "label": "POSITIVE",
+                "score": 0.95,
+            }
+        )
         mock.return_value = instance
         yield instance
 

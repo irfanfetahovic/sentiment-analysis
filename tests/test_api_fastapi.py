@@ -13,15 +13,16 @@ def mock_predictor():
     """Mock sentiment predictor."""
     # Create fake (mock) predictor instance with controlled behavior
     predictor = Mock()
-    predictor.predict.return_value = {
-        "text": "Great product!",
-        "label": "POSITIVE",
-        "score": 0.95,
-    }
-    predictor.predict_batch.return_value = [
-        {"text": "Great product!", "label": "POSITIVE", "score": 0.95},
-        {"text": "Terrible quality", "label": "NEGATIVE", "score": 0.88},
-    ]
+    predictor.predict.side_effect = lambda x: (
+        [
+            {"text": "Great product!", "label": "POSITIVE", "score": 0.95},
+            {"text": "Terrible quality", "label": "NEGATIVE", "score": 0.88},
+        ] if isinstance(x, list) else {
+            "text": "Great product!",
+            "label": "POSITIVE",
+            "score": 0.95,
+        }
+    )
     return predictor
 
 

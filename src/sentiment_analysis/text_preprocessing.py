@@ -63,6 +63,10 @@ class TextPreprocessor:
             self.lemmatizer = None
             self.stop_words = None
 
+    def batch_clean(self, texts):
+        """Clean a batch of texts."""
+        return [self.clean_text(text) for text in texts]
+
     def _download_nltk_data(self):
         required_data = [
             "stopwords",
