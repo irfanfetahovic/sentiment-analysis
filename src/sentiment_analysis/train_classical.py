@@ -161,7 +161,12 @@ class ClassicalSentimentModel:
         model_path.parent.mkdir(parents=True, exist_ok=True)
         joblib.dump(self.model, model_path)
 
-        if self.feature_extractor and feature_extractor_path:
+        # Always save the feature extractor if present
+        if self.feature_extractor:
+            if feature_extractor_path is None:
+                feature_extractor_path = str(
+                    model_path.with_name(model_path.stem + "_vectorizer.pkl")
+                )
             self.feature_extractor.save(feature_extractor_path)
 
         # Save model config
@@ -188,7 +193,12 @@ class ClassicalSentimentModel:
         """Load a trained model and feature extractor."""
         self.model = joblib.load(model_path)
 
-        if feature_extractor_path and Path(feature_extractor_path).exists():
+        # Always try to load the feature extractor if present
+        if feature_extractor_path is None:
+            feature_extractor_path = str(
+                Path(model_path).with_name(Path(model_path).stem + "_vectorizer.pkl")
+            )
+        if Path(feature_extractor_path).exists():
             self.feature_extractor = TFIDFFeatureExtractor()
             self.feature_extractor.load(feature_extractor_path)
 
