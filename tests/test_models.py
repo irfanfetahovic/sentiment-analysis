@@ -312,19 +312,9 @@ class TestClassicalSentimentModel:
             loaded_model.load(str(save_path))
             assert loaded_model.fitted
 
-            # Transform X_test to features before prediction to avoid 1D error
-            if loaded_model.feature_extractor:
-                X_test_features = loaded_model.feature_extractor.transform(X_test)
-            else:
-                X_test_features = X_test
-            # Ensure X_test_features is 2D
-            import numpy as np
-
-            X_test_features = np.array(X_test_features)
-            if X_test_features.ndim == 1:
-                X_test_features = X_test_features.reshape(-1, 1)
+            # Use loaded_model.predict, which handles feature extraction and type conversion
             original_preds = model.predict(X_test)
-            loaded_preds = loaded_model.model.predict(X_test_features)
+            loaded_preds = loaded_model.predict(X_test)
             assert all(original_preds == loaded_preds)
 
     def test_save_creates_model_config(self, sample_data):
