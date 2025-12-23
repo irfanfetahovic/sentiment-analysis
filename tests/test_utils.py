@@ -71,15 +71,11 @@ class TestRegisterTrainedModel:
                 model_name="Test Model",
                 model_path=str(model_path),
                 model_type="transformer",
+                registry_file=str(registry_path),
             )
-
-            # Check file was created
             assert registry_path.exists()
-
-            # Check content
             with open(registry_path, "r") as f:
                 models = json.load(f)
-
             assert len(models) == 1
             assert models[0]["name"] == "Test Model"
             assert models[0]["path"] == str(model_path)
@@ -96,20 +92,16 @@ class TestRegisterTrainedModel:
                 model_name="Model 1",
                 model_path="/path/to/model1",
                 model_type="classical",
+                registry_file=str(registry_path),
             )
-
-            # Register second model
             register_trained_model(
                 model_name="Model 2",
                 model_path="/path/to/model2",
                 model_type="transformer",
                 registry_file=str(registry_path),
             )
-
-            # Check both models are registered
             with open(registry_path, "r") as f:
                 models = json.load(f)
-
             assert len(models) == 2
             assert models[0]["name"] == "Model 1"
             assert models[1]["name"] == "Model 2"

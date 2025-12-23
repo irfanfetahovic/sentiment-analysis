@@ -308,7 +308,8 @@ class TestClassicalSentimentModel:
             save_path = Path(tmpdir) / "model.pkl"
             model.save(save_path)
 
-            loaded_model = ClassicalSentimentModel.load(str(save_path))
+            loaded_model = ClassicalSentimentModel()
+            loaded_model.load(str(save_path))
             assert loaded_model.fitted
 
             # Should produce same predictions
@@ -325,12 +326,8 @@ class TestClassicalSentimentModel:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             save_path = Path(tmpdir) / "model.pkl"
-            model.save(save_path)
-            # Patch: create model_config.json for test assertion
+            model.save(save_path, model_params={"max_iter": 100})
             config_path = save_path.parent / "model_config.json"
-            if not config_path.exists():
-                with open(config_path, "w") as f:
-                    f.write("{}")
             assert config_path.exists()
 
             # Check config content

@@ -10,10 +10,10 @@ from unittest.mock import Mock, patch
 @pytest.fixture
 def mock_predictor():
     """Mock sentiment predictor for Flask app."""
+    # Patch SentimentPredictor before importing app.app
     with patch("app.app.SentimentPredictor") as mock_class:
         instance = Mock()
 
-        # Patch predict_with_labels for both single and batch
         def predict_with_labels(x):
             if isinstance(x, list):
                 return [
