@@ -124,6 +124,13 @@ class ClassicalSentimentModel:
                 and np.issubdtype(X_features.dtype, np.number)
             ):
                 X_features = X_features.reshape(-1, 1)
+                # If X_features is a 1D string array, convert to list of strings (sklearn expects 2D numeric input)
+                if (
+                    isinstance(X_features, np.ndarray)
+                    and X_features.dtype.kind in {"U", "S", "O"}
+                    and X_features.ndim == 1
+                ):
+                    X_features = list(X_features)
         return self.model.predict(X_features)
 
     def predict_proba(self, X):
