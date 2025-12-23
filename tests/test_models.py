@@ -312,9 +312,13 @@ class TestClassicalSentimentModel:
             loaded_model.load(str(save_path))
             assert loaded_model.fitted
 
-            # Use loaded_model.predict, which handles feature extraction and type conversion
-            original_preds = model.predict(X_test)
-            loaded_preds = loaded_model.predict(X_test)
+            # Ensure X_test is a list of strings for prediction
+            if isinstance(X_test, (np.ndarray, pd.Series)):
+                X_test_list = list(X_test)
+            else:
+                X_test_list = X_test
+            original_preds = model.predict(X_test_list)
+            loaded_preds = loaded_model.predict(X_test_list)
             assert all(original_preds == loaded_preds)
 
     def test_save_creates_model_config(self, sample_data):
