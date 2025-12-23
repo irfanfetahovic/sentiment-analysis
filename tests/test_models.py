@@ -317,6 +317,12 @@ class TestClassicalSentimentModel:
                 X_test_features = loaded_model.feature_extractor.transform(X_test)
             else:
                 X_test_features = X_test
+            # Ensure X_test_features is 2D
+            import numpy as np
+
+            X_test_features = np.array(X_test_features)
+            if X_test_features.ndim == 1:
+                X_test_features = X_test_features.reshape(-1, 1)
             original_preds = model.predict(X_test)
             loaded_preds = loaded_model.model.predict(X_test_features)
             assert all(original_preds == loaded_preds)

@@ -33,6 +33,12 @@ def mock_predictor():
 
         instance.predict_with_labels.side_effect = predict_with_labels
         mock_class.return_value = instance
+
+        # Patch the global predictor in app.app to use our mock
+        import app.app
+
+        app.app.predictor = instance
+
         yield instance
 
 
