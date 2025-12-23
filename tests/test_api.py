@@ -17,7 +17,9 @@ def mock_predictor():
             [
                 {"text": "Great!", "label": "POSITIVE", "score": 0.95},
                 {"text": "Terrible!", "label": "NEGATIVE", "score": 0.92},
-            ] if isinstance(x, list) else {
+            ]
+            if isinstance(x, list)
+            else {
                 "text": "Great product!",
                 "label": "POSITIVE",
                 "score": 0.95,

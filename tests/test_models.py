@@ -37,7 +37,9 @@ class TestSentimentPredictor:
     def test_init_transformer(self, mock_transformer_pipeline):
         """Test initialization of transformer predictor."""
         with patch("pathlib.Path.exists", return_value=True):
-            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            predictor = SentimentPredictor(
+                model_path="fake/path", model_type="transformer"
+            )
             assert predictor.model_type == "transformer"
             assert predictor.pipeline is not None
 
@@ -46,11 +48,11 @@ class TestSentimentPredictor:
         mock_config = Mock()
         mock_config.num_labels = 2
         mock_transformer_pipeline.model.config = mock_config
-        mock_transformer_pipeline.return_value = [
-            [{"label": "LABEL_1", "score": 0.95}]
-        ]
+        mock_transformer_pipeline.return_value = [[{"label": "LABEL_1", "score": 0.95}]]
         with patch("pathlib.Path.exists", return_value=True):
-            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            predictor = SentimentPredictor(
+                model_path="fake/path", model_type="transformer"
+            )
             result = predictor.predict("Great product!")
             assert isinstance(result, np.ndarray)
             assert result.shape == (1,)
@@ -66,7 +68,9 @@ class TestSentimentPredictor:
             [{"label": "LABEL_0", "score": 0.88}],
         ]
         with patch("pathlib.Path.exists", return_value=True):
-            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            predictor = SentimentPredictor(
+                model_path="fake/path", model_type="transformer"
+            )
             texts = ["Great product!", "Terrible quality"]
             results = predictor.predict(texts)
             assert isinstance(results, np.ndarray)
@@ -81,7 +85,9 @@ class TestSentimentPredictor:
         mock_transformer_pipeline.model.config = mock_config
         mock_transformer_pipeline.return_value = [{"label": "LABEL_1", "score": 0.95}]
         with patch("pathlib.Path.exists", return_value=True):
-            predictor = SentimentPredictor(model_path="fake/path", model_type="transformer")
+            predictor = SentimentPredictor(
+                model_path="fake/path", model_type="transformer"
+            )
             result = predictor.predict_with_labels("Great product!")
             assert "label" in result
             assert "score" in result
