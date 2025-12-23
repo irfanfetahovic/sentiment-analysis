@@ -115,6 +115,19 @@ class ClassicalSentimentModel:
             X_features = self.feature_extractor.transform(X)
         else:
             X_features = X
+            # If X_features is a 1D array of strings, reshape to (-1, 1) for sklearn
+            if (
+                isinstance(X_features, np.ndarray)
+                and X_features.dtype.kind in {"U", "S", "O"}
+                and X_features.ndim == 1
+            ):
+                X_features = X_features.reshape(-1, 1)
+            elif (
+                isinstance(X_features, list)
+                and len(X_features) > 0
+                and isinstance(X_features[0], str)
+            ):
+                X_features = np.array(X_features).reshape(-1, 1)
 
         return self.model.predict(X_features)
 
