@@ -43,3 +43,8 @@ DEFAULT_API_PORT = 5000
 
 # File Path References (for backward compatibility)
 DEFAULT_CONFIG_PATH = "config/config.yaml"
+
+# Model and Training Defaults (for tests and modules)
+DEFAULT_TRANSFORMER_MODEL = "distilbert-base-uncased"
+DEFAULT_MAX_LENGTH = 128
+DEFAULT_TEST_SIZE = 0.2
