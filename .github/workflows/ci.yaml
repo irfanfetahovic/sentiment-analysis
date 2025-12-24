@@ -78,8 +78,8 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: test
-    # Build and push Docker image on push to main or PR merge to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Build and push Docker image on any push to main
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v3
