@@ -13,9 +13,9 @@ from .evaluation import evaluate_model, evaluate_classification, compare_models
 
 # Define the public API of the package
 __all__ = [
-    "SentimentPredictor", 
+    "SentimentPredictor",
     "TextPreprocessor",
     "evaluate_model",
     "evaluate_classification",
-    "compare_models"
+    "compare_models",
 ]

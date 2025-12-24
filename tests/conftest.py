@@ -18,8 +18,9 @@ def sample_texts():
         "Terrible quality. Would not recommend.",
         "It's okay, nothing special.",
         "Best purchase ever! Highly recommended.",
-        "Waste of money. Very disappointed."
+        "Waste of money. Very disappointed.",
     ]
+
 
 # Creating fixtures for test data used across multiple test files.
 @pytest.fixture(scope="session")
@@ -40,7 +41,7 @@ def sample_texts_three_class():
         "Decent product, does what it says.",
         "Outstanding quality! Worth every penny!",
         "Mediocre at best. Nothing to write home about.",
-        "Awful. Complete waste of time."
+        "Awful. Complete waste of time.",
     ]
 
 
@@ -60,14 +61,14 @@ def temp_model_dir():
 @pytest.fixture
 def temp_data_file():
     """Create temporary CSV file for data testing."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-        f.write('Score,Text\n')
-        f.write('5,Great product\n')
-        f.write('1,Terrible quality\n')
-        f.write('4,Good value\n')
-        f.write('2,Not great\n')
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        f.write("Score,Text\n")
+        f.write("5,Great product\n")
+        f.write("1,Terrible quality\n")
+        f.write("4,Good value\n")
+        f.write("2,Not great\n")
         f.flush()
         yield Path(f.name)
-    
+
     # Cleanup
     Path(f.name).unlink(missing_ok=True)

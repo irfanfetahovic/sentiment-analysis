@@ -4,9 +4,9 @@ name: CI/CD Pipeline for Sentiment Analysis Project
 # Trigger the workflow on push or pull request to main or develop branches
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
 
 # Define the jobs to run in the workflow (actions for testing and Docker image building)
 jobs:
@@ -60,7 +60,7 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        pytest tests/ --cov=. --cov-report=xml --cov-report=html
+        PYTHONPATH=src pytest tests/ --cov=. --cov-report=xml --cov-report=html
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

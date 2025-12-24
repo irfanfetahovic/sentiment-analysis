@@ -17,8 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 # Suppress TensorFlow warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 # Add src directory to path (not needed after pip install -e .)
 # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -34,7 +34,7 @@ from sentiment_analysis.constants import (
     DEFAULT_API_HOST,
     DEFAULT_API_PORT,
     MODEL_TYPE_TRANSFORMER,
-    DEVICE_CPU
+    DEVICE_CPU,
 )
 
 # Load environment variables
@@ -42,19 +42,23 @@ load_dotenv()
 
 # Load configuration (settings.py will auto-detect config.yaml location)
 config = load_config()
-api_config = config.get('api', {})
-inference_config = config.get('inference', {})
-logging_config = config.get('logging', {})
+api_config = config.get("api", {})
+inference_config = config.get("inference", {})
+logging_config = config.get("logging", {})
 
 # Configuration from environment or config file
-MODEL_PATH = os.getenv('MODEL_PATH', str(settings.model_dir / 'distilbert_sentiment'))
-MODEL_TYPE = os.getenv('MODEL_TYPE', inference_config.get('model_type', MODEL_TYPE_TRANSFORMER))
-API_MAX_TEXT_LENGTH = int(os.getenv('MAX_TEXT_LENGTH', api_config.get('max_text_length', MAX_TEXT_LENGTH)))
-LOG_FILE = os.getenv('LOG_FILE', logging_config.get('log_file', 'logs/app.log'))
-HOST = os.getenv('HOST', api_config.get('host', DEFAULT_API_HOST))
-PORT = int(os.getenv('PORT', api_config.get('port', DEFAULT_API_PORT)))
-DEBUG = os.getenv('DEBUG', str(api_config.get('debug', False))).lower() == 'true'
-DEVICE = os.getenv('DEVICE', inference_config.get('device', DEVICE_CPU))
+MODEL_PATH = os.getenv("MODEL_PATH", str(settings.model_dir / "distilbert_sentiment"))
+MODEL_TYPE = os.getenv(
+    "MODEL_TYPE", inference_config.get("model_type", MODEL_TYPE_TRANSFORMER)
+)
+API_MAX_TEXT_LENGTH = int(
+    os.getenv("MAX_TEXT_LENGTH", api_config.get("max_text_length", MAX_TEXT_LENGTH))
+)
+LOG_FILE = os.getenv("LOG_FILE", logging_config.get("log_file", "logs/app.log"))
+HOST = os.getenv("HOST", api_config.get("host", DEFAULT_API_HOST))
+PORT = int(os.getenv("PORT", api_config.get("port", DEFAULT_API_PORT)))
+DEBUG = os.getenv("DEBUG", str(api_config.get("debug", False))).lower() == "true"
+DEVICE = os.getenv("DEVICE", inference_config.get("device", DEVICE_CPU))
 
 # Setup logging
 setup_logging(log_file=LOG_FILE)
@@ -65,37 +69,47 @@ logger = logging.getLogger(__name__)
 # Pydantic Models for Request/Response Validation
 # ============================================================================
 
+
 class PredictRequest(BaseModel):
     """Request model for single prediction"""
-    text: str = Field(..., description="Text to analyze", min_length=1, max_length=API_MAX_TEXT_LENGTH)
-    
-    @validator('text')
+
+    text: str = Field(
+        ..., description="Text to analyze", min_length=1, max_length=API_MAX_TEXT_LENGTH
+    )
+
+    @validator("text")
     def text_must_not_be_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError('Text cannot be empty or whitespace only')
+            raise ValueError("Text cannot be empty or whitespace only")
         return v
 
     class Config:
         json_schema_extra = {
-            "example": {
-                "text": "This product is amazing! Highly recommend it."
-            }
+            "example": {"text": "This product is amazing! Highly recommend it."}
         }
 
 
 class BatchPredictRequest(BaseModel):
     """Request model for batch predictions"""
-    texts: List[str] = Field(..., description="List of texts to analyze", min_items=1, max_items=MAX_BATCH_SIZE)
-    
-    @validator('texts')
+
+    texts: List[str] = Field(
+        ...,
+        description="List of texts to analyze",
+        min_items=1,
+        max_items=MAX_BATCH_SIZE,
+    )
+
+    @validator("texts")
     def validate_texts(cls, v):
         if not v:
-            raise ValueError('Texts list cannot be empty')
+            raise ValueError("Texts list cannot be empty")
         for text in v:
             if not text or not text.strip():
-                raise ValueError('Each text must be non-empty')
+                raise ValueError("Each text must be non-empty")
             if len(text) > API_MAX_TEXT_LENGTH:
-                raise ValueError(f'Text length cannot exceed {API_MAX_TEXT_LENGTH} characters')
+                raise ValueError(
+                    f"Text length cannot exceed {API_MAX_TEXT_LENGTH} characters"
+                )
         return v
 
     class Config:
@@ -104,7 +118,7 @@ class BatchPredictRequest(BaseModel):
                 "texts": [
                     "Great product!",
                     "Terrible quality",
-                    "It's okay, nothing special"
+                    "It's okay, nothing special",
                 ]
             }
         }
@@ -112,6 +126,7 @@ class BatchPredictRequest(BaseModel):
 
 class PredictResponse(BaseModel):
     """Response model for single prediction"""
+
     text: str
     label: str
     score: float = Field(..., ge=0.0, le=1.0)
@@ -120,6 +135,7 @@ class PredictResponse(BaseModel):
 
 class BatchPredictResponse(BaseModel):
     """Response model for batch predictions"""
+
     predictions: List[PredictResponse]
     total_processed: int
     total_time: float
@@ -127,6 +143,7 @@ class BatchPredictResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health check"""
+
     status: str
     model_loaded: bool
     model_type: str
@@ -135,6 +152,7 @@ class HealthResponse(BaseModel):
 
 class ModelInfoResponse(BaseModel):
     """Response model for model information"""
+
     model_type: str
     model_path: str
     device: str
@@ -177,11 +195,9 @@ app.add_middleware(
 # )
 
 
-
-
-
 # Initialize predictor
 predictor = None
+
 
 # You load model only once when the app starts (not per request)
 @app.on_event("startup")
@@ -191,9 +207,7 @@ async def startup_event():
     try:
         logger.info(f"Loading model from {MODEL_PATH}")
         predictor = SentimentPredictor(
-            model_path=MODEL_PATH,
-            model_type=MODEL_TYPE,
-            device=DEVICE
+            model_path=MODEL_PATH, model_type=MODEL_TYPE, device=DEVICE
         )
         logger.info("Model loaded successfully")
     except Exception as e:
@@ -205,6 +219,7 @@ async def startup_event():
 # API Endpoints
 # ============================================================================
 
+
 # Handling get requests to the root endpoint
 @app.get("/", tags=["General"])
 async def root():
@@ -213,7 +228,7 @@ async def root():
         "message": "Sentiment Analysis API",
         "version": "1.0.0",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }
 
 
@@ -221,14 +236,14 @@ async def root():
 async def health_check():
     """
     Check if the API is running and model is loaded
-    
+
     Returns health status, model information, and timestamp
     """
     return HealthResponse(
         status="healthy" if predictor else "unhealthy",
         model_loaded=predictor is not None,
         model_type=MODEL_TYPE,
-        timestamp=datetime.now().isoformat()
+        timestamp=datetime.now().isoformat(),
     )
 
 
@@ -236,36 +251,35 @@ async def health_check():
 async def predict(request: PredictRequest):
     """
     Analyze sentiment of a single text
-    
+
     - **text**: The text to analyze (required)
-    
+
     Returns the predicted sentiment label, confidence score, and processing time
     """
     if not predictor:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model not loaded"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model not loaded"
         )
-    
+
     try:
         start_time = time.time()
         result = predictor.predict_with_labels(request.text)
         processing_time = time.time() - start_time
-        
+
         logger.info(f"Prediction: {result['label']} (score: {result['score']:.4f})")
-        
+
         return PredictResponse(
-            text=result['text'],
-            label=result['label'],
-            score=result['score'],
-            processing_time=processing_time
+            text=result["text"],
+            label=result["label"],
+            score=result["score"],
+            processing_time=processing_time,
         )
-    
+
     except Exception as e:
         logger.error(f"Prediction error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Prediction failed: {str(e)}"
+            detail=f"Prediction failed: {str(e)}",
         )
 
 
@@ -273,50 +287,51 @@ async def predict(request: PredictRequest):
 async def predict_batch(request: BatchPredictRequest):
     """
     Analyze sentiment of multiple texts in batch
-    
+
     - **texts**: List of texts to analyze (required, max {MAX_BATCH_SIZE} items)
-    
+
     Returns predictions for all texts with total processing time
     """
     if not predictor:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model not loaded"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model not loaded"
         )
-    
+
     try:
         start_time = time.time()
         # predict_with_labels handles both single texts and lists
         results = predictor.predict_with_labels(request.texts)
         total_time = time.time() - start_time
-        
+
         # Ensure results is a list (single text returns dict, multiple returns list)
         if isinstance(results, dict):
             results = [results]
-        
+
         predictions = [
             PredictResponse(
-                text=r['text'],
-                label=r['label'],
-                score=r['score'],
-                processing_time=0  # Individual timing not tracked in batch
+                text=r["text"],
+                label=r["label"],
+                score=r["score"],
+                processing_time=0,  # Individual timing not tracked in batch
             )
             for r in results
         ]
-        
-        logger.info(f"Batch prediction: {len(predictions)} texts processed in {total_time:.4f}s")
-        
+
+        logger.info(
+            f"Batch prediction: {len(predictions)} texts processed in {total_time:.4f}s"
+        )
+
         return BatchPredictResponse(
             predictions=predictions,
             total_processed=len(predictions),
-            total_time=total_time
+            total_time=total_time,
         )
-    
+
     except Exception as e:
         logger.error(f"Batch prediction error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Batch prediction failed: {str(e)}"
+            detail=f"Batch prediction failed: {str(e)}",
         )
 
 
@@ -324,21 +339,20 @@ async def predict_batch(request: BatchPredictRequest):
 async def model_info():
     """
     Get information about the loaded model
-    
+
     Returns model type, path, device, and API limits
     """
     if not predictor:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model not loaded"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Model not loaded"
         )
-    
+
     return ModelInfoResponse(
         model_type=MODEL_TYPE,
         model_path=MODEL_PATH,
         device=DEVICE,
         max_text_length=API_MAX_TEXT_LENGTH,
-        max_batch_size=MAX_BATCH_SIZE
+        max_batch_size=MAX_BATCH_SIZE,
     )
 
 
@@ -346,25 +360,21 @@ async def model_info():
 # Run Server (use for production with Gunicorn)
 # ============================================================================
 
-# 
+
+#
 def main():
     """Run the FastAPI server
-        Use for local testing or development only
-        For production, use Gunicorn with Uvicorn workers:
-            gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.app_fastapi:app
+    Use for local testing or development only
+    For production, use Gunicorn with Uvicorn workers:
+        gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.app_fastapi:app
     """
     import uvicorn
-    
+
     logger.info(f"Starting FastAPI server on {HOST}:{PORT}")
     logger.info(f"Swagger UI available at: http://{HOST}:{PORT}/docs")
     logger.info(f"ReDoc available at: http://{HOST}:{PORT}/redoc")
-    
-    uvicorn.run(
-        app,
-        host=HOST,
-        port=PORT,
-        log_level="info"
-    )
+
+    uvicorn.run(app, host=HOST, port=PORT, log_level="info")
 
 
 if __name__ == "__main__":
