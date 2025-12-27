@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf aws awscliv2.zip \
     && rm -rf /var/lib/apt/lists/*
 
+
+# Install AWS CLI
+RUN pip install --no-cache-dir awscli
+
 # Copy optimized requirements for smaller image (CPU-only PyTorch, inference deps only)
 COPY requirements-docker.txt .
 
