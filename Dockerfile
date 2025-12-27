@@ -22,9 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Install AWS CLI
-RUN pip install --no-cache-dir awscli
-
 # Copy optimized requirements for smaller image (CPU-only PyTorch, inference deps only)
 COPY requirements-docker.txt .
 
@@ -66,7 +63,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 5000
 
 # Health check (increased start-period to allow time for model download)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # Set entrypoint to handle model downloads
