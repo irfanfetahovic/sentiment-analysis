@@ -18,7 +18,8 @@
       ],
       "essential": true,
       "environment": [
-        { "name": "MODEL_S3_URI", "value": "s3://irfan-ml-models/sentiment-analysis/distilbert_sentiment.tar.gz" },
+        { "name": "TRANSFORMER_MODEL_S3_URI", "value": "s3://irfan-ml-models/sentiment-analysis/distilbert_sentiment.tar.gz" },
+        { "name": "CLASSICAL_MODEL_S3_URI", "value": "s3://irfan-ml-models/sentiment-analysis/classical_models.tar.gz" }, 
         { "name": "AWS_DEFAULT_REGION", "value": "eu-north-1" }
       ],
       "logConfiguration": {
@@ -34,7 +35,7 @@
         "interval": 30,
         "timeout": 10,
         "retries": 3,
-        "startPeriod": 90
+        "startPeriod": 300
       }
     }
   ]

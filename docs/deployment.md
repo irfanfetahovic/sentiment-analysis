@@ -456,13 +456,46 @@ aws ecs register-task-definition --cli-input-json file://ecs-task-definition.jso
 After successful registration, use the outputted task definition revision (e.g., sentiment-analysis:1) in the next step.
 
 # 2. Create ECS service
-aws ecs create-service \
-  --cluster sentiment-cluster \
-  --service-name sentiment-service \
-  --task-definition sentiment-analysis:1 \
-  --desired-count 2 \
-  --launch-type FARGATE
-```
+
+## First create a cluster
+aws ecs create-cluster `
+  --region eu-north-1 `
+  --cluster-name sentiment-cluster
+
+## Then choose subnet and security group, and create log group
+
+List of subnets to choose from
+aws ec2 describe-subnets --region eu-north-1 --query "Subnets[*].{ID:SubnetId,Name:Tags[?Key=='Name']|[0].Value}" 
+
+List of security groups to choose from
+aws ec2 describe-security-groups --region eu-north-1 --query "SecurityGroups[*].{ID:GroupId,Name:GroupName}"
+
+
+aws logs create-log-group --log-group-name /ecs/sentiment-analysis --region eu-north-1
+
+
+
+## Create service
+Replace Replace subnet-XXXX and sg-YYYY with the IDs you found in the first two commands in the previous section.
+
+aws ecs create-service `
+  --region eu-north-1 `
+  --cluster sentiment-cluster `
+  --service-name sentiment-service `
+  --task-definition sentiment-analysis:1 `# 1 is a revision number
+  --desired-count 1 `
+  --launch-type FARGATE `
+  --network-configuration "awsvpcConfiguration={subnets=[subnet-XXXX],securityGroups=[sg-YYYY],assignPublicIp=ENABLED}"
+
+## Useful commands
+aws ecs describe-services --cluster sentiment-cluster --services sentiment-service --region eu-north-1
+aws ecs delete-service --cluster sentiment-cluster --service sentiment-service --force --region eu-north-1
+aws ecs update-service --cluster sentiment-cluster --service sentiment-service --force-new-deployment --region eu-north-1
+
+## Testing 
+
+aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1
+
 
 #### Option 3: AWS Lambda + API Gateway
 
