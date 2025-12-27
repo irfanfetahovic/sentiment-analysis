@@ -489,6 +489,10 @@ aws ecs create-service `
 
 ## Useful commands
 aws ecs describe-services --cluster sentiment-cluster --services sentiment-service --region eu-north-1
+aws ecs list-tasks \
+  --cluster sentiment-cluster \
+  --service-name sentiment-service \
+  --region eu-north-1
 aws ecs describe-tasks --cluster sentiment-cluster --tasks xxxxxxxxxxxxxxxxxxxx --region eu-north-1
 aws ecs delete-service --cluster sentiment-cluster --service sentiment-service --force --region eu-north-1
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --force-new-deployment --region eu-north-1
