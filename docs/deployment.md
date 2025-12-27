@@ -482,24 +482,39 @@ aws ecs create-service `
   --region eu-north-1 `
   --cluster sentiment-cluster `
   --service-name sentiment-service `
-  --task-definition sentiment-analysis:1 `# 1 is a revision number
+  --task-definition sentiment-analysis:1 `# 1 is a revision number, if ommitted aws uses last version
   --desired-count 1 `
   --launch-type FARGATE `
   --network-configuration "awsvpcConfiguration={subnets=[subnet-XXXX],securityGroups=[sg-YYYY],assignPublicIp=ENABLED}"
 
 ## Useful commands
 aws ecs describe-services --cluster sentiment-cluster --services sentiment-service --region eu-north-1
-aws ecs list-tasks \
-  --cluster sentiment-cluster \
-  --service-name sentiment-service \
-  --region eu-north-1
+aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1 # if not empty, it is good
 aws ecs describe-tasks --cluster sentiment-cluster --tasks xxxxxxxxxxxxxxxxxxxx --region eu-north-1
 aws ecs delete-service --cluster sentiment-cluster --service sentiment-service --force --region eu-north-1
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --force-new-deployment --region eu-north-1
 
+
 ## Testing 
 
-aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1
+aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1 # if not empty, it is good
+aws ecs describe-tasks --cluster sentiment-cluster --tasks xxxxxxxxxxxxxxxxxxxx --region eu-north-1
+
+Security Group Rules (EC2-Security Groups)
+Go to the security group sg-0a213725b35d2fe47 (the one attached to your Fargate task) in the EC2 console:
+Inbound rule: Allow TCP on port 5000 from your IP (My IP) or 0.0.0.0/0 (for testing, less secure).
+
+Outbound rule: Usually default allows all outbound, which is fine.
+
+Go to VPC-Subnets-Select subnet you previously selected in "List of subnets to choose from" and check if Auto-assign customer-owned IPv4 address is Yes. If not, go to Actions and edit this.
+
+curl http://<PUBLIC_IP>:5000/health
+Public IP is available at ECS-Clusters-<our cluster>
+
+Stoping tasks (and stop incurring charges by AWS), but service remain and can be restarted
+aws ecs update-service --cluster sentiment-cluster --service sentiment-service --desired-count 0 --region eu-north-1
+
+aws ecs update-service --cluster sentiment-cluster --service sentiment-service --desired-count 1 --region eu-north-1
 
 
 #### Option 3: AWS Lambda + API Gateway
@@ -520,6 +535,185 @@ def lambda_handler(event, context):
         'body': json.dumps(result)
     }
 ```
+
+#### Option 4. ML App Deployment on AWS EC2
+
+
+##### 1. Prepare Your ML App
+
+- Ensure your ML app is containerized using Docker.
+- The app should:
+  - Pull the model from S3.
+  - Expose an API endpoint (FastAPI/Flask).
+  - Load the model into memory on startup.
+
+
+##### 2. Push Docker Image to ECR
+
+1. Create ECR repository:
+```bash
+aws ecr create-repository --repository-name my-ml-app
+```
+2. Authenticate Docker with ECR:
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com
+```
+3. Build & tag Docker image:
+```bash
+docker build -t my-ml-app .
+docker tag my-ml-app:latest <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ml-app:latest
+```
+4. Push image to ECR:
+```bash
+docker push <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ml-app:latest
+```
+
+---
+
+##### 3. Provision EC2 Instance
+
+- Choose instance type (CPU: t3.medium/t3.large, GPU: g4dn.xlarge/p3.2xlarge).
+- Use Amazon Linux 2023 or Ubuntu 22.04 LTS.
+- Configure Security Group:
+  - Allow inbound HTTP/HTTPS (80/443) and SSH (22) from trusted IPs.
+- Assign IAM Role with S3 read permissions.
+
+---
+
+##### 4. Install Docker on EC2
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker $USER  # optional
+```
+
+Verify installation:
+```bash
+docker --version
+```
+
+---
+
+##### 5. Pull Docker Image on EC2
+
+```bash
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com
+docker pull <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ml-app:latest
+```
+
+---
+
+##### 6. Configure S3 Access in Container
+
+Use IAM Role for EC2 to access S3 securely.
+
+```python
+import boto3
+s3 = boto3.client("s3")
+s3.download_file("my-bucket", "model.pkl", "/app/model.pkl")
+```
+
+---
+
+##### 7. Run Docker Container
+
+```bash
+docker run -d -p 80:8000 --name ml-app <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ml-app:latest
+```
+
+---
+
+##### 8. Optional: Docker Compose for Multi-Container
+
+```yaml
+version: '3.8'
+services:
+  api:
+    image: <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ml-app:latest
+    ports:
+      - "80:8000"
+    environment:
+      - MODEL_BUCKET=my-bucket
+```
+Run with:
+```bash
+docker-compose up -d
+```
+
+---
+
+##### 9. Optional: Reverse Proxy / SSL
+
+Use Nginx to proxy requests and enable HTTPS.
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+---
+
+##### 10. Set Up Auto-Restart
+
+**Docker restart policy:**
+```bash
+docker run -d --restart unless-stopped -p 80:8000 ...
+```
+
+**Or systemd service:**
+```ini
+[Unit]
+Description=ML API
+
+[Service]
+ExecStart=/usr/bin/docker run --rm -p 80:8000 <image>
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+---
+
+##### 11. Logging & Monitoring
+
+- Use CloudWatch Logs or mount logs from container.
+```bash
+docker logs -f ml-app
+```
+- Optional: Prometheus/Grafana for metrics.
+
+---
+
+##### 12. Optional: Scaling
+
+- Use **Auto Scaling Group (ASG)** and **Application Load Balancer (ALB)**.
+- Each instance runs the same Docker container.
+- ALB distributes API requests.
+
+---
+
+##### Summary
+
+**Deployment Steps:**
+1. Dockerize ML app & model loader from S3
+2. Push image to ECR
+3. Launch EC2 instance (with IAM role)
+4. Install Docker & pull image
+5. Run container (with restart policy)
+6. Optional: reverse proxy + SSL
+7. Optional: ASG + ALB for scaling
 
 ### Google Cloud Platform (GCP)
 
