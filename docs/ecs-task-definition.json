@@ -1,0 +1,41 @@
+{
+  "family": "sentiment-analysis",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::357879830629:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::357879830629:role/sentimentAppTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "sentiment-api",
+      "image": "357879830629.dkr.ecr.eu-north-1.amazonaws.com/sentiment-analysis:latest",
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        { "name": "MODEL_S3_URI", "value": "s3://irfan-ml-models/sentiment-analysis/distilbert_sentiment.tar.gz" },
+        { "name": "AWS_DEFAULT_REGION", "value": "eu-north-1" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/sentiment-analysis",
+          "awslogs-region": "eu-north-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 90
+      }
+    }
+  ]
+}

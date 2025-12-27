@@ -92,7 +92,7 @@ The project includes a `.dockerignore` file that excludes unnecessary files (tes
 # Build Docker image
 docker build -t sentiment-analysis:latest .
 
-# Run container ("%cd% for CMD use)
+# Run container ("%cd% for CMD use, ${PWD} for Power Shell)
 docker run -d \
   -p 5000:5000 \
   -v $(PWD)/models:/app/models:ro \ 
@@ -357,7 +357,12 @@ eb open
 #### Option 2: AWS ECS (Fargate)
 
 **Prerequisites**: Create ECR repository first (via AWS Console or CLI):
+
 ```bash
+aws configure # login into IAM user which contain necessary privilages
+# needed: aws configure command and setting up aws cli user
+# accound-id is 12-digit number and can be found with aws cli command "aws sts get-caller-identity"
+# aws cli user should have also AmazonEC2ContainerRegistryPowerUser and AmazonEC2ContainerRegistryFullAccess policy
 aws ecr create-repository --repository-name sentiment-analysis
 ```
 
@@ -368,6 +373,7 @@ aws ecr create-repository --repository-name sentiment-analysis
 docker build -t sentiment-analysis:latest .
 
 # 2. Authenticate with ECR
+
 aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
 
 # 3. Tag for ECR
@@ -385,14 +391,78 @@ docker push <account-id>.dkr.ecr.<region>.amazonaws.com/sentiment-analysis:lates
 
 **Next Steps**: Create ECS task definition and service
 
-# 4. Create ECS service
+# 1. Create ECS Task definitions
+
+You must register a task definition before creating a service. Below is a professional, secure sample for this project:
+
+> **Security Best Practice:**
+> Do NOT include AWS credentials or secrets directly in your task definition or version control. Use IAM roles for tasks (recommended) or reference secrets from AWS Secrets Manager or SSM Parameter Store.
+
+1. Create a file named `ecs-task-definition.json` in your project root with the following content (replace `<account-id>`, `<region>`, and ARNs as needed):
+
+```json
+{
+  "family": "sentiment-analysis",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<account-id>:role/sentimentAppTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "sentiment-api",
+      "image": "<account-id>.dkr.ecr.<region>.amazonaws.com/sentiment-analysis:latest",
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        { "name": "MODEL_S3_URI", "value": "s3://my-ml-models/sentiment-analysis/distilbert_sentiment.tar.gz" },
+        { "name": "AWS_DEFAULT_REGION", "value": "<region>" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/sentiment-analysis",
+          "awslogs-region": "<region>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 90
+      }
+    }
+  ]
+}
+```
+
+- `executionRoleArn` and `taskRoleArn` should be IAM roles with permissions to pull from ECR, write logs, and access S3/SSM as needed.
+
+
+2. Register the task definition:
+
+```bash
+aws ecs register-task-definition --cli-input-json file://ecs-task-definition.json
+```
+
+After successful registration, use the outputted task definition revision (e.g., sentiment-analysis:1) in the next step.
+
+# 2. Create ECS service
 aws ecs create-service \
   --cluster sentiment-cluster \
   --service-name sentiment-service \
   --task-definition sentiment-analysis:1 \
   --desired-count 2 \
   --launch-type FARGATE
-``
+```
 
 #### Option 3: AWS Lambda + API Gateway
 
