@@ -509,7 +509,7 @@ Outbound rule: Usually default allows all outbound, which is fine.
 Go to VPC-Subnets-Select subnet you previously selected in "List of subnets to choose from" and check if Auto-assign customer-owned IPv4 address is Yes. If not, go to Actions and edit this.
 
 curl http://<PUBLIC_IP>:5000/health
-Public IP is available at ECS-Clusters-<our cluster>
+Public IP is available at ECS-Clusters-<our cluster>-Task, then click on active task and select Network-ENI-Network Interface
 
 Stoping tasks (and stop incurring charges by AWS), but service remain and can be restarted
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --desired-count 0 --region eu-north-1
