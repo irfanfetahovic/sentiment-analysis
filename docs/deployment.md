@@ -975,14 +975,28 @@ kubectl get service sentiment-service
 
 ```bash
 # 1. Create Droplet with Docker pre-installed
-doctl compute droplet create sentiment-api \
-  --image docker-20-04 \
-  --size s-2vcpu-4gb \
-  --region nyc3 \
-  --ssh-keys <your-ssh-key-id>
+First, install doctl drom DigitalOcean website, and generate a Digital Ocean API token.
+Issue commmand doctl auth init and paste the token.
+List your SSH keys (get the ID): doctl compute ssh-key list
+If no keys, generate one 
+ssh-keygen -t ed25519 -C "irfanfetahovic@gmail.com" -f $env:USERPROFILE\.ssh\id_ed25519_do
+Import public key into DigitalOcean doctl compute ssh-key import do-key `
+  --public-key-file $env:USERPROFILE\.ssh\id_ed25519_do.pub
+
+Run doctl compute ssh-key list
+
+doctl compute droplet create sentiment-api `# Droplet is a VM on Digital Ocean
+  --image docker-20-04 ` # Ubuntu 20.04 with Docker pre-installed
+  --size s-2vcpu-4gb `
+  --region nyc3 `
+  --ssh-keys <ID_FROM_LIST>
+
+doctl compute droplet list # Useful command to get droplet IP address
 
 # 2. SSH into droplet
 doctl compute ssh sentiment-api
+Alternative: ssh -i $env:USERPROFILE\.ssh\id_ed25519_do root@<dropletIP>
+
 
 # 3. Build image on droplet (or pull from registry)
 git clone https://github.com/<your-username>/sentiment-analysis.git
@@ -993,11 +1007,28 @@ docker build -t sentiment-analysis:latest .
 # docker pull ghcr.io/<your-username>/sentiment-analysis:latest
 
 # 4. Run container
+
 docker run -d \
   -p 80:5000 \
   --name sentiment-api \
   --restart unless-stopped \
+  -e AWS_ACCESS_KEY_ID=<your-access-key> \
+  -e AWS_SECRET_ACCESS_KEY=<your-secret-key> \
+  -e AWS_DEFAULT_REGION=<your-region> \
+  -e TRANSFORMER_MODEL_S3_URI=s3://your-bucket-name/model-file \
+   -e CLASSICAL_MODEL_S3_URI=s3://your-bucket-name/model-file \
   sentiment-analysis:latest
+
+Check if its working: docker ps
+STATUS should say Up
+PORTS shows host_port -> container_port (here 80->5000)
+docker logs -f sentiment-api
+
+If not working try again, but first stop and remove container that is not working
+docker stop <container-id> # Stopping container
+docker rm <container-id> # Removing container
+
+exit
 
 # 4. Configure firewall (allow HTTP)
 doctl compute firewall create \
@@ -1005,6 +1036,30 @@ doctl compute firewall create \
   --inbound-rules "protocol:tcp,ports:80,sources:addresses:0.0.0.0/0,sources:addresses:::/0" \
   --droplet-ids $(doctl compute droplet list sentiment-api --format ID --no-header)
 ```
+# 5. Testing
+curl http://<droplet-public-ip>/
+http://<droplet-public-ip>/
+http://<droplet-public-ip>/docs
+
+Useful commands
+doctl compute droplet list # To see droplet ip address and other info
+doctl compute firewall list # firewall info
+ssh root@<droplet-public-ip> or ssh -i $env:USERPROFILE\.ssh\id_ed25519_do root@167.71.172.85 # connecting to droplet again after you exit
+doctl compute firewall update f50d4ffe-3b27-41e8-9bc1-baea6c6ea0e4 # Firewall ID`
+  --name web-firewall `
+  --inbound-rules "protocol:tcp,ports:22,sources:addresses:0.0.0.0/0,sources:addresses:::/0" `
+  --inbound-rules "protocol:tcp,ports:80,sources:addresses:0.0.0.0/0,sources:addresses:::/0"
+This command updates firewall rules to include port 22 necessary for ssh access.
+
+Stopping droplet
+doctl compute droplet-action power-off <droplet-id>
+Cost: You still pay for the droplet disk (storage), but not for CPU/RAM while it’s powered off
+Useful if you want to pause usage but keep the data and configuration
+
+Deleting droplet
+doctl compute droplet delete <droplet-id> --force
+Cost: You stop all charges, but all data is lost unless you have snapshots/backups
+
 
 #### Option 4: Functions (Serverless)
 
