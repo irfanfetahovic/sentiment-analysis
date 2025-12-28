@@ -513,7 +513,7 @@ Public IP is available at ECS-Clusters-<our cluster>-Task, then click on active 
 
 Stoping tasks (and stop incurring charges by AWS), but service remain and can be restarted
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --desired-count 0 --region eu-north-1
-
+Restarting
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --desired-count 1 --region eu-north-1
 
 
