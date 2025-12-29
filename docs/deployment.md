@@ -191,7 +191,7 @@ aws s3api put-object-acl \
 
 #### Option A: IAM Role (Recommended for AWS deployments)
 
-Create an IAM role with S3 read permissions:
+Example for creating an IAM role with S3 read permissions:
 
 ```json
 {
@@ -391,7 +391,7 @@ docker push <account-id>.dkr.ecr.<region>.amazonaws.com/sentiment-analysis:lates
 
 **Next Steps**: Create ECS task definition and service
 
-# 1. Create ECS Task definitions
+##### 1. Create ECS Task definitions
 
 You must register a task definition before creating a service. Below is a professional, secure sample for this project:
 
@@ -455,14 +455,15 @@ aws ecs register-task-definition --cli-input-json file://ecs-task-definition.jso
 
 After successful registration, use the outputted task definition revision (e.g., sentiment-analysis:1) in the next step.
 
-# 2. Create ECS service
+##### 2. Create ECS service
 
-## First create a cluster
+First create a cluster
+
 aws ecs create-cluster `
   --region eu-north-1 `
   --cluster-name sentiment-cluster
 
-## Then choose subnet and security group, and create log group
+Then choose subnet and security group, and create log group
 
 List of subnets to choose from
 aws ec2 describe-subnets --region eu-north-1 --query "Subnets[*].{ID:SubnetId,Name:Tags[?Key=='Name']|[0].Value}" 
@@ -473,10 +474,9 @@ aws ec2 describe-security-groups --region eu-north-1 --query "SecurityGroups[*].
 
 aws logs create-log-group --log-group-name /ecs/sentiment-analysis --region eu-north-1
 
+Create service
 
-
-## Create service
-Replace Replace subnet-XXXX and sg-YYYY with the IDs you found in the first two commands in the previous section.
+Replace subnet-XXXX and sg-YYYY with the IDs you found in the first two commands in the previous section.
 
 aws ecs create-service `
   --region eu-north-1 `
@@ -486,8 +486,10 @@ aws ecs create-service `
   --desired-count 1 `
   --launch-type FARGATE `
   --network-configuration "awsvpcConfiguration={subnets=[subnet-XXXX],securityGroups=[sg-YYYY],assignPublicIp=ENABLED}"
+  Note: This service does not have load balacing and autoscaling, but it can be configured.
 
-## Useful commands
+##### 3. Useful commands
+
 aws ecs describe-services --cluster sentiment-cluster --services sentiment-service --region eu-north-1
 aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1 # if not empty, it is good
 aws ecs describe-tasks --cluster sentiment-cluster --tasks xxxxxxxxxxxxxxxxxxxx --region eu-north-1
@@ -495,7 +497,7 @@ aws ecs delete-service --cluster sentiment-cluster --service sentiment-service -
 aws ecs update-service --cluster sentiment-cluster --service sentiment-service --force-new-deployment --region eu-north-1
 
 
-## Testing 
+##### 4. Testing 
 
 aws ecs list-tasks --cluster sentiment-cluster --service-name sentiment-service --region eu-north-1 # if not empty, it is good
 aws ecs describe-tasks --cluster sentiment-cluster --tasks xxxxxxxxxxxxxxxxxxxx --region eu-north-1
@@ -995,7 +997,7 @@ doctl compute droplet list # Useful command to get droplet IP address
 
 # 2. SSH into droplet
 doctl compute ssh sentiment-api
-Alternative: ssh -i $env:USERPROFILE\.ssh\id_ed25519_do root@<dropletIP>
+Alternative: doctl compute ssh -i $env:USERPROFILE\.ssh\id_ed25519_do root@<dropletIP>
 
 
 # 3. Build image on droplet (or pull from registry)
@@ -1036,15 +1038,19 @@ doctl compute firewall create \
   --inbound-rules "protocol:tcp,ports:80,sources:addresses:0.0.0.0/0,sources:addresses:::/0" \
   --droplet-ids $(doctl compute droplet list sentiment-api --format ID --no-header)
 ```
-# 5. Testing
+5. Testing
 curl http://<droplet-public-ip>/
 http://<droplet-public-ip>/
 http://<droplet-public-ip>/docs
 
 Useful commands
+Before accessing droplet you have to know its ip address
 doctl compute droplet list # To see droplet ip address and other info
+
+
 doctl compute firewall list # firewall info
 ssh root@<droplet-public-ip> or ssh -i $env:USERPROFILE\.ssh\id_ed25519_do root@167.71.172.85 # connecting to droplet again after you exit
+
 doctl compute firewall update f50d4ffe-3b27-41e8-9bc1-baea6c6ea0e4 # Firewall ID`
   --name web-firewall `
   --inbound-rules "protocol:tcp,ports:22,sources:addresses:0.0.0.0/0,sources:addresses:::/0" `
