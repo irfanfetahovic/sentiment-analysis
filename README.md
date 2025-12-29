@@ -1,6 +1,6 @@
 # Sentiment Analysis (Classical ML + DistilBERT)
 
-Production-focused sentiment analysis comparing classical NLP models (TF‑IDF + Logistic Regression / other scikit-learn models) with a fine‑tuned DistilBERT transformer on Amazon product reviews.
+Production-focused sentiment analysis comparing classical NLP models (TF‑IDF + Logistic Regression) with a fine‑tuned DistilBERT transformer on Amazon product reviews.
 
 ## Overview
 
@@ -204,7 +204,7 @@ For complete documentation, see the [Documentation Index](docs/README.md).
 - **[Preprocessing Guide](docs/PREPROCESSING_GUIDE.md)** - Classical vs Transformer preprocessing strategies
 - **[API Documentation](docs/API.md)** - REST API endpoints and usage examples
 - **[Model Comparison](docs/model_comparison.md)** - Performance benchmarks and metrics
-- **[Deployment Guide](docs/deployment.md)** - Docker, AWS, Azure, GCP deployment instructions
+- **[Deployment Guide](docs/deployment.md)** - Docker, AWS, Azure, Digital Ocean, GCP deployment instructions
 
 ## 📝 Notebooks
 
@@ -216,7 +216,7 @@ GitHub Actions workflow:
 - Matrix test (Python 3.10–3.12)
 - Lint, format check, mypy (non‑blocking)
 - Pytest + coverage upload (Codecov)
-- GHCR image build & push on `main` branch pushes
+- Optional GHCR image build & push on `main` branch pushes
 
 ## Contributing
 1. Fork
