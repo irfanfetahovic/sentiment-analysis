@@ -107,6 +107,7 @@ dmypy.json
 # Documentation
 docs/_build/
 docs/GITHUB_SETUP.md
+docs/deployment-full.md
 site/
 
 # Temporary files
